@@ -1,0 +1,92 @@
+---
+title: "Practical Machine Learning - Course Project"
+author: "Donald Hyppolite"
+date: "April 21, 2017"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r, echo=FALSE, message=FALSE}
+library(caret)
+set.seed(19163)
+train.data <- read.csv("pml-training.csv", header=TRUE, na.strings = c('#DIV/0!', 'NA'))
+```
+## Overview
+Data from accelerometers on the belt, forearm, arm, and dumbell of 6 participants doing various exercises were gathered.  These exercises were classified into 6 classes (A,B,C,D,E). In this exercise, a classification model will be created using the data.  
+
+As part of the Coursera Practical Machine Learning course, the final model will be applied to a final unclassified test set.
+
+## Exploring the Data
+
+The dimensions of the test data is 19622 rows by 160 columns.  A cursory look at the data shows that there are several columns that are largely populated by NA values. Some columns contain over 98% NAs. The function below creates a list of the columns that have a total percentage of NAs greater or equalt to what is defined by the function parameter 'filterPercent'.
+
+```{r}
+naColumns <- function(data, filterPercent)
+{
+    colList <- c()
+    rLength <- nrow(data)
+    cn <- colnames(data)
+    for(i in 1:length(data)){
+        
+        naTotal <- sum(is.na(data[,i])==TRUE)
+        naPercent <- as.double(naTotal)/as.double(rLength)
+        if(naPercent >= filterPercent)
+        {
+            colList <- c(colList, i)
+        }
+    }
+    
+    colList
+}
+```
+
+```{r}
+## Filter Columns that are mostly NA's
+emptyCols <- naColumns(train.data, .90)
+
+## Add Columns suspected to not add value
+emptyCols <- c(1:7, emptyCols)
+train.data.colfilter <- train.data[, -emptyCols]
+```
+
+```{r, echo=FALSE}
+inTrain <- createDataPartition(y=train.data.colfilter$classe, p=0.7, list=FALSE)
+model.training.data <- train.data.colfilter[inTrain,]
+model.testing.data  <- train.data.colfilter[-inTrain,]
+```
+
+## Model Setup
+Since our task in this problem was that of classification and not prediction Random Forest was chosen to create the model.
+Due to the size of the test data (19622 rows), there is enough data to perform cross-validation.  A 10-fold cross-validation was performed against the data.
+
+```{r, echo=FALSE}
+## Load modfit object
+load(file="model.rda")
+```
+
+### Model and Results
+The final model results can be seen below: 
+
+```{r, comment="", message=FALSE}
+## Test Our Model against the final dataset
+## Create test set
+pred <- predict(modfit, newdata=model.testing.data)
+
+##confusion matrix
+confusionMatrix(pred, model.testing.data$classe)
+```
+This reports a 99.39% Accuracy rate. modFit$finalModel reports an OOB estimate of  error rate: 0.67%.
+Using this model, I was able to predict 100% of the final test set.
+
+## Data Sources
+Training Set:
+https://d396qusza40orc.cloudfront.net/predmachlearn/pml-training.csv
+
+Testing Set:
+https://d396qusza40orc.cloudfront.net/predmachlearn/pml-testing.csv
+
+Data Source:
+http://groupware.les.inf.puc-rio.br/har
