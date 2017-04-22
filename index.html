@@ -159,6 +159,21 @@ train.data.colfilter &lt;- train.data[, -emptyCols]</code></pre>
 <div id="model-setup" class="section level2">
 <h2>Model Setup</h2>
 <p>Since our task in this problem was that of classification and not prediction Random Forest was chosen to create the model. Due to the size of the test data (19622 rows), there is enough data to perform cross-validation. A 10-fold cross-validation was performed against the data.</p>
+<pre class="r"><code>## Load modfit object
+train.control &lt;- trainControl(method=&quot;cv&quot;)
+modfit &lt;- train(classe ~ . , 
+                        data=model.training.data,
+                        trControl=train.control,
+                        method=&quot;rf&quot;
+                )</code></pre>
+<pre><code>## Loading required package: randomForest</code></pre>
+<pre><code>## randomForest 4.6-12</code></pre>
+<pre><code>## Type rfNews() to see new features/changes/bug fixes.</code></pre>
+<pre><code>## 
+## Attaching package: 'randomForest'</code></pre>
+<pre><code>## The following object is masked from 'package:ggplot2':
+## 
+##     margin</code></pre>
 <div id="model-and-results" class="section level3">
 <h3>Model and Results</h3>
 <p>The final model results can be seen below:</p>
